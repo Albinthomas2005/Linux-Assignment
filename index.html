@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Operations and Compression</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+            background: linear-gradient(to bottom, #3D52A0, #EDE8F5);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px;
+            background: url('https://via.placeholder.com/1500x400') no-repeat center center/cover;
+            color: #fff;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin: 10px 0 30px;
+        }
+
+        .command-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px;
+        }
+
+        .command-card {
+            background: #fff;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            width: 220px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .command-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .command-card h3 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: #7091E6; /* Title color */
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .command-info {
+            display: flex;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            text-align: left;
+            padding: 25px;
+            background: #fff;
+            color: #333;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            z-index: 1000;
+            transition: transform 0.5s ease-in-out;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .command-info.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .command-details {
+            width: 60%;
+        }
+
+        .command-image {
+            width: 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .command-image img {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 15px;
+        }
+
+        .example-box {
+            background-color: #EDE8F5; /* Light background for example box */
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #ADBBDA; /* Border color */
+            font-family: monospace;
+            color: #2c3e50;
+            white-space: pre-wrap;
+        }
+
+        .close-button {
+            background: #7091E6; /* Button color */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            border: none;
+            transition: background 0.3s ease, transform  0.2s ease;
+            margin-top: 20px;
+        }
+
+        .close-button:hover {
+            background: #3D52A0; /* Darker shade on hover */
+            transform: scale(1.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1f1f1f;
+            color: #fff;
+            margin-top: 20px;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>File Operations and Compression</h1>
+        <p>Click on a command to learn more about it.</p>
+    </header>
+
+    <div class="command-cards">
+        <div class="command-card" onclick="showCommandInfo('find')">
+            <h3>Find</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('tar')">
+            <h3>Tar</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('gzip')">
+            <h3>Gzip</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('gunzip')">
+            <h3>Gunzip</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('zip')">
+            <h3>Zip</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('chmod')">
+            <h3>Chmod</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('chown')">
+            <h3>Chown</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('chgrp')">
+            <h3>Chgrp</h3>
+        </div>
+        <div class="command-card" onclick="showCommandInfo('ps')">
+            <h3>PS</h3>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="command-info" id="command-info">
+        <div class="command-details">
+            <h2>Find</h2>
+            <p>The 'find' command is one of the most versatile and powerful tools available in the Unix/Linux shell. It allows users to search for files and directories based on various criteria such as file name, size, modification time, and other attributes. With the ability to search recursively through directories, it's essential for anyone working in a command-line environment.</p>
+            <ul>
+                <li>Locate files or directories based on name, size, type, and modification time.</li>
+                <li>Supports advanced features like running commands on search results using the '-exec' option.</li>
+                <li>Highly flexible and efficient for managing large numbers of files in complex directory structures.</li>
+            </ul>
+            <div class="example-box"> Example: find /home -name '*.log'</div>
+            <button class="close-button" onclick="closePopup()">Close</button>
+        </div>
+        <div class="command-image">
+            <img id="command-image" src="./File Operations and Compression_files/find.jpg" alt="Command Image">
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 File Operations and Compression. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const commands = {
+            find: {
+                title: "Find",
+                description: "The 'find' command is one of the most versatile and powerful tools available in the Unix/Linux shell. It allows users to search for files and directories based on various criteria such as file name, size, modification time, and other attributes. With the ability to search recursively through directories, it's essential for anyone working in a command-line environment.",
+                points: [
+                    "Locate files or directories based on name, size, type, and modification time.",
+                    "Supports advanced features like running commands on search results using the '-exec' option.",
+                    "Highly flexible and efficient for managing large numbers of files in complex directory structures."
+                ],
+                examples: "find /home -name '*.log'",
+                image: "find.jpg"
+            },
+            tar: {
+                title: "Tar",
+                description: "The 'tar' command is used to create compressed archive files from multiple files and directories, or to extract them. It's a staple in system administration and backup operations due to its simplicity and efficiency. Tar can be used to group related files into a single archive, which makes it easier to transfer or store.",
+                points: [
+                    "Create archives of files or directories with options to compress (e.g., using 'gzip' or 'bzip2').",
+                    "Extract files from tar archives, preserving directory structure.",
+                    "Supports multiple compression formats, making it versatile for backups and storage."
+                ],
+                examples: "tar -czf archive.tar.gz /path/to/directory",
+                image: "tar.jpg"
+            },
+            gzip: {
+                title: "Gzip",
+                description: "The 'gzip' command is used to compress files, reducing their size for easier storage or transfer. Gzip is widely used in Unix/Linux environments due to its speed and simplicity. It's especially useful for compressing text-based files and log files, and it's often paired with the 'tar' command to create compressed archives.",
+                points: [
+                    "Compress files to save disk space or reduce transfer time.",
+                    "Works best on large text files like logs, databases, or source code.",
+                    "Supports decompression using 'gunzip' or 'zcat' commands."
+                ],
+                examples: "gzip myfile.txt",
+                image: "gzip.jpg"
+            },
+            gunzip: {
+                title: "Gunzip",
+                description: "The 'gunzip' command is used to decompress files compressed with 'gzip'. It removes the '.gz' extension from files and restores them to their original form. It's a crucial tool for reversing the compression done by 'gzip', and it's widely used when working with large compressed datasets.",
+                points: [
+                    "Decompress files that have been compressed using the 'gzip' format.",
+                    "Simple to use with minimal syntax, restoring files to their original state.",
+                    "Essential for managing files that have been compressed for storage or transfer."
+                ],
+                examples: "gunzip myfile.txt.gz",
+                image: "gunzip.jpg"
+            },
+            zip: {
+                title: "Zip",
+                description: "The 'zip' command is used to package multiple files and directories into a single archive file. The .zip format is commonly used for compressing and sharing files, particularly when a group of files needs to be transferred or stored together. It supports password protection and encryption for added security.",
+                points: [
+                    "Create compressed archive files, often used for data sharing and transfer.",
+                    "Supports encryption and password protection for secure file packaging.",
+                    "Can handle multiple files and directories, offering flexibility for various use cases."
+                ],
+                examples: "zip archive.zip file1.txt file2.txt",
+                image: "zip.jpg"
+            },
+            chmod: {
+                title: "Chmod",
+                description: "The 'chmod' command is used to change file permissions, allowing users to define who can read, write, or execute a file. This command is essential for system administrators and users who need to manage access control in a Unix/Linux environment.",
+                points: [
+                    "Modify file and directory permissions for different users and groups.",
+                    "Support for symbolic and numeric modes for fine-grained permission management.",
+                    "Critical for managing secure access to files and directories in multi-user environments."
+                ],
+                examples: "chmod 755 myfile.txt",
+                image: "chmod.jpg"
+            },
+            chown: {
+                title: "Chown",
+                description: "The 'chown' command changes the ownership of a file or directory, which is crucial for managing access control. With 'chown', administrators can assign specific users or groups as owners, ensuring that only authorized users have access to certain files.",
+                points: [
+                    "Change the ownership of files or directories.",
+                    "Can assign ownership to specific users or groups.",
+                    "Vital for managing user access and maintaining file security."
+                ],
+                examples: "chown user:group myfile.txt",
+                image: "chown.jpg"
+            },
+            chgrp: {
+                title: "Chgrp",
+                description: "The 'chgrp' command changes the group ownership of a file or directory. This command is used to ensure that files are accessible to the correct group members, which is important in multi-user environments where shared files need to be managed effectively.",
+                points: [
+                    "Modify the group ownership of files or directories.",
+                    "Used in collaboration environments to manage group-based access to files.",
+                    "Ensures proper access control for group members."
+                ],
+                examples: "chgrp group myfile.txt",
+                image: "chgrp.jpg"
+            },
+            ps: {
+                title: "PS",
+                description: "The 'ps' command provides a snapshot of currently running processes, making it essential for monitoring system activity. It displays details like process IDs (PIDs), CPU usage, memory usage, and the status of each process. System administrators use this command to track resource consumption and troubleshoot issues.",
+                points: [
+                    "View active processes running on the system, with detailed information.",
+                    " Monitor CPU and memory usage for performance optimization.",
+                    "Essential for system administration, process management, and troubleshooting."
+                ],
+                examples: "ps aux",
+                image: "ps.jpg"
+            }
+        };
+
+        function showCommandInfo(commandKey) {
+            const command = commands[commandKey];
+            if (command) {
+                const overlay = document.getElementById("overlay");
+                const info = document.getElementById("command-info");
+
+                info.querySelector("h2").textContent = command.title;
+                info.querySelector("p").textContent = command.description;
+
+                const ul = info.querySelector("ul");
+                ul.innerHTML = "";
+                command.points.forEach(point => {
+                    const li = document.createElement("li");
+                    li.textContent = point;
+                    ul.appendChild(li);
+                });
+
+                const pre = info.querySelector(".example-box");
+                pre.textContent = ` Example: ${command.examples}`;
+
+                const img = document.getElementById("command-image");
+                img.src = command.image;
+
+                overlay.classList.add("active");
+                info.classList.add("active");
+            }
+        }
+
+        function closePopup() {
+            const overlay = document.getElementById("overlay");
+            const info = document.getElementById("command-info");
+            overlay.classList.remove("active");
+            info.classList.remove("active");
+        }
+    </script>
+
+</body>
+</html>
